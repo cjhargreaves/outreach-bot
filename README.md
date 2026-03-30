@@ -26,11 +26,11 @@ CONTACTS_PER_COMPANY = 3   # how many Claude picks
 
 **Terminal — processing log:**
 
-![Processing log](ex1.png)
+![Processing log](assets/ex1.png)
 
 **Summary table:**
 
-![Outreach summary](ex2.png)
+![Outreach summary](assets/ex2.png)
 
 ## Setup
 
