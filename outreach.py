@@ -203,6 +203,21 @@ def add_to_list(contact_id: str, label_id: str) -> bool:
     return resp.ok
 
 
+def company_already_in_list(domain: str, companies_label_id: str) -> bool:
+    """Return True if an account for this domain is already in the companies list."""
+    resp = requests.post(
+        f"{BASE_URL}/accounts/search",
+        json={"q_organization_domains": domain, "page": 1, "per_page": 1},
+        headers=headers(),
+    )
+    if not resp.ok:
+        return False
+    for account in resp.json().get("accounts", []):
+        if companies_label_id in (account.get("label_ids") or []):
+            return True
+    return False
+
+
 def add_company_to_list(company_name: str, domain: str, companies_label_id: str) -> bool:
     """Create (or find) an Apollo account for this company and add it to the companies list."""
     resp = requests.post(
@@ -248,6 +263,11 @@ def process_companies(csv_path: str, label_id: str, companies_label_id: Optional
         domain = domain.rstrip("/").split("/")[0]
 
         console.rule(f"[bold cyan]{company_name}[/]")
+
+        if companies_label_id and company_already_in_list(domain, companies_label_id):
+            console.print("  [dim]Already in companies list — skipping.[/]")
+            summary_rows.append({"company": company_name, "contacts": [], "error": None})
+            continue
 
         try:
             people = search_people(domain, company_name)
