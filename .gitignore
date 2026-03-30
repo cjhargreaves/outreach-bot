@@ -1,0 +1,7 @@
+.env
+venv/
+__pycache__/
+*.pyc
+ex1.png
+ex2.png
+debug_search.py
