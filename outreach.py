@@ -14,6 +14,7 @@ import csv
 import os
 import sys
 import time
+from datetime import datetime
 from typing import Optional
 
 import anthropic
@@ -240,6 +241,29 @@ def add_company_to_list(company_name: str, domain: str, companies_label_id: str)
 
 # ── Core loop ─────────────────────────────────────────────────────────────────
 
+LOG_FILE = "outreach_log.csv"
+LOG_HEADERS = ["date", "company", "domain", "name", "title", "email"]
+
+
+def append_to_log(company_name: str, domain: str, contacts: list[dict]) -> None:
+    """Append newly added contacts to the running outreach log CSV."""
+    write_header = not os.path.exists(LOG_FILE)
+    with open(LOG_FILE, "a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=LOG_HEADERS)
+        if write_header:
+            writer.writeheader()
+        date = datetime.today().strftime("%Y-%m-%d")
+        for c in contacts:
+            writer.writerow({
+                "date":    date,
+                "company": company_name,
+                "domain":  domain,
+                "name":    c["name"],
+                "title":   c["title"],
+                "email":   c["email"],
+            })
+
+
 def process_companies(csv_path: str, label_id: str, companies_label_id: Optional[str]) -> list[dict]:
     console = Console()
     summary_rows: list[dict] = []
@@ -329,6 +353,10 @@ def process_companies(csv_path: str, label_id: str, companies_label_id: Optional
             add_company_to_list(company_name, domain, companies_label_id)
 
         summary_rows.append({"company": company_name, "contacts": selected, "error": None})
+
+        if selected:
+            append_to_log(company_name, domain, selected)
+
         time.sleep(1.0)
 
     return summary_rows
